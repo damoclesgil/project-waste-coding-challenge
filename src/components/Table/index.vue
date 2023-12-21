@@ -9,8 +9,8 @@
             class="input-search"
             v-model="searchQuery"
             @input="onChange"
-            placeholder="Search by “Item code”, “Product”, or “Category”"
-            aria-label="Recipient's search product"
+            placeholder="Product search"
+            aria-label="Search by “Item code”, “Product”, or “Category”"
           />
           <span class="search-icon" @click="onChange">
             <SearchIcon />
@@ -20,7 +20,10 @@
           <table>
             <thead>
               <tr>
-                <th v-for="field in fields" :key="field">
+                <th
+                  v-for="(field, indexField) in fields"
+                  :key="'field' + indexField"
+                >
                   {{ field }}
                   <button @click="sortValue(field)" v-if="showSortIcon(field)">
                     <SortIcon :color-asc="colorAsc" :color-desc="colorDesc" />
@@ -96,8 +99,16 @@ export default {
   setup(props) {
     const searchQuery = ref(null);
     const tableData = ref([...props.data]);
+    // const tableHeaders = ref
     const currentSort = ref(0);
     const sortStatus = ref([null, "asc", "desc"]);
+
+    const handleHeaders = (headers) => {
+      if (headers === "Edit available quantity") {
+        return "quantity";
+      }
+      return camelize(headers);
+    };
 
     const sortBy = (currentSortKey = "name", currentSortType = "desc") => {
       function compare(a, b) {
@@ -107,9 +118,20 @@ export default {
           return currentSortType === "desc" ? -1 : 1;
         return 0;
       }
+
+      function orderByNumber(a, b) {
+        return a[currentSortKey].localeCompare(b[currentSortKey], "en", {
+          numeric: true,
+          sensitivity: "base",
+        });
+      }
       return currentSortType !== null
-        ? [...props.data].sort(compare)
-        : [...props.data];
+        ? [...tableData.value].sort(
+            currentSortKey === "package" || currentSortKey === "availableUnits"
+              ? orderByNumber
+              : compare
+          )
+        : [...tableData.value];
     };
 
     const sortValue = (col) => {
@@ -118,11 +140,27 @@ export default {
       tableData.value = sortBy(key, sortStatus.value[currentSort.value]);
     };
 
-    const handleHeaders = (headers) => {
-      if (headers === "Edit available quantity") {
-        return "quantity";
+    const colorAsc = computed(() => {
+      if (currentSort.value === 1 && currentSort.value !== 0) return "#2D3748";
+      if (currentSort.value === 2 && currentSort.value !== 0) return "#E7E8EA";
+      return "#E7E8EA";
+    });
+    const colorDesc = computed(() => {
+      if (currentSort.value === 1 && currentSort.value !== 0) return "#E7E8EA";
+      if (currentSort.value === 2 && currentSort.value !== 0) return "#2D3748";
+      return "#E7E8EA";
+    });
+
+    const showSortIcon = (field) => {
+      if (
+        field === "Product" ||
+        field === "Package" ||
+        field === "Available units" ||
+        field === "Last updated"
+      ) {
+        return true;
       }
-      return camelize(headers);
+      return false;
     };
 
     const handleCells = (fields) => {
@@ -171,29 +209,6 @@ export default {
       return tableData.value;
     });
 
-    const colorAsc = computed(() => {
-      if (currentSort.value === 1 && currentSort.value !== 0) return "#2D3748";
-      if (currentSort.value === 2 && currentSort.value !== 0) return "#E7E8EA";
-      return "#E7E8EA";
-    });
-    const colorDesc = computed(() => {
-      if (currentSort.value === 1 && currentSort.value !== 0) return "#E7E8EA";
-      if (currentSort.value === 2 && currentSort.value !== 0) return "#2D3748";
-      return "#E7E8EA";
-    });
-
-    const showSortIcon = (field) => {
-      if (
-        field === "Product" ||
-        field === "Package" ||
-        field === "Available units" ||
-        field === "Last updated"
-      ) {
-        return true;
-      }
-      return false;
-    };
-
     const onChangeValue = (e, index) => {
       tableData.value[index].quantity = e.target.value;
       tableData.value[index].availableUnits = formatPrice(e.target.value);
@@ -232,7 +247,6 @@ export default {
     font-size: 22px;
   }
 }
-
 .wrapper-input {
   display: flex;
   flex-wrap: wrap;
@@ -240,7 +254,6 @@ export default {
 }
 .wrapper-input-cell {
   display: flex;
-  justify-content: start;
 
   span {
     background-color: #f9f9f9;
@@ -265,7 +278,7 @@ export default {
 }
 .input-search {
   width: 100%;
-  max-width: 330px;
+  max-width: 220px;
   padding: 0.6rem 0.8rem;
   margin-bottom: 1rem;
   height: 40px;
@@ -283,6 +296,7 @@ export default {
   align-items: center;
   text-align: center;
   cursor: pointer;
+  color: #5e5e5e;
   border: 1px solid #5e5e5e;
   padding: 0 0.4rem;
   height: 40px;
@@ -299,19 +313,30 @@ table {
   width: 100%;
   border-collapse: collapse;
 }
-th {
-  background-color: #f8f8f8;
-}
 
 th,
 td {
-  border: 1px solid #000;
-  padding: 8px;
+  border: 1px solid #f1f1f1;
   text-align: left;
+}
+th {
+  padding: 1.5rem 1rem;
+  background-color: #f8f8f8;
+}
+th:first-child {
+  border-left-style: none;
+}
+th:last-child {
+  border-right-style: none;
+}
+td {
+  border-left-style: none;
+  border-right-style: none;
+  padding: 0.7rem;
 }
 
 .text-green {
   color: green;
-  font-weight: 400;
+  font-weight: 600;
 }
 </style>

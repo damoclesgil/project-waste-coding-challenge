@@ -24,7 +24,6 @@ export default {
 
 <style scoped>
 .wrapper {
-  background-color: #f8f8f8;
-  padding: 0.5rem 1rem;
+  padding: 0.8rem 1rem;
 }
 </style>

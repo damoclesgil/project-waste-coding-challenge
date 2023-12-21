@@ -39,17 +39,6 @@ describe("Table.vue", () => {
     ];
     expect(cells).toEqual(expectedResult);
   });
-});
 
-/*
-describe("HelloWorld.vue", () => {
-  it("renders props.msg when passed", () => {
-    const msg = "new message";
-    const wrapper = shallowMount(HelloWorld, {
-      props: { msg },
-    });
-    expect(wrapper.text()).toMatch(msg);
-  });
-});
 
-*/
+});
