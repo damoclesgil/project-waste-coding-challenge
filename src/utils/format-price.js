@@ -1,6 +1,10 @@
 export default function formatPrice(price) {
-  return new Intl.NumberFormat("en", {
+  let value = new Intl.NumberFormat("en", {
     style: "currency",
     currency: "USD",
   }).format(price);
+  if (value === "$NaN") {
+    return "$ 0";
+  }
+  return value;
 }

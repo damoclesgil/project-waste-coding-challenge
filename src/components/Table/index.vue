@@ -12,7 +12,7 @@
             placeholder="Search by “Item code”, “Product”, or “Category”"
             aria-label="Recipient's search product"
           />
-          <span class="search-icon">
+          <span class="search-icon" @click="onChange">
             <SearchIcon />
           </span>
         </div>
@@ -35,8 +35,11 @@
                   :key="cell"
                   :class="`${fields[indexCell] === 'Product' && 'text-green'}`"
                 >
-                  {{ fields[indexCell] === "Last updated" ? "" : item[cell] }}
-                  <!-- {{ item[cell] }} -->
+                  <template v-if="fields[indexCell] === 'Last updated'">
+                    <p>{{ formatDate(item[cell]) }}</p>
+                    <p>{{ formatTime(item[cell]) }}</p>
+                  </template>
+                  <template v-else>{{ item[cell] }}</template>
                 </td>
                 <td>
                   <div class="wrapper-input-cell">
@@ -45,9 +48,9 @@
                       :value="tableData[indexItem].quantity"
                       @input="onChangeValue($event, indexItem)"
                       name="quantity"
-                      type="number"
                       placeholder="quantity"
                     />
+                    <!-- type="number" -->
                   </div>
                 </td>
               </tr>
@@ -69,6 +72,8 @@
 import { ref, computed } from "vue";
 import camelize from "../../utils/camelize";
 import formatPrice from "../../utils/format-price";
+import { formatDate, formatTime } from "../../utils/format-date";
+
 import { debounce } from "throttle-debounce";
 import SortIcon from "../Icons/SortIcon.vue";
 import SearchIcon from "../Icons/SearchIcon.vue";
@@ -127,7 +132,9 @@ export default {
     };
 
     const handleSearch = debounce(800, (searching) => {
-      onSearch(searching.trim());
+      if (searching) {
+        onSearch(searching.trim());
+      }
     });
 
     const onSearch = (searchParam) => {
@@ -188,15 +195,8 @@ export default {
     };
 
     const onChangeValue = (e, index) => {
-      console.log(e.target.value);
-      console.log(index);
-      let formattedValue = formatPrice(e.target.value);
       tableData.value[index].quantity = e.target.value;
-      tableData.value[index].availableUnits = formattedValue;
-      console.log(formattedValue);
-      // Object.assign(datax[index], {
-      //   valor: '123'
-      // })
+      tableData.value[index].availableUnits = formatPrice(e.target.value);
     };
 
     return {
@@ -211,6 +211,8 @@ export default {
       colorDesc,
       showSortIcon,
       handleCells,
+      formatDate,
+      formatTime,
     };
   },
 };
@@ -226,6 +228,8 @@ export default {
   background-color: #fff;
   h2 {
     margin-bottom: 1rem;
+    font-weight: bold;
+    font-size: 22px;
   }
 }
 
@@ -236,7 +240,7 @@ export default {
 }
 .wrapper-input-cell {
   display: flex;
-  justify-content: center;
+  justify-content: start;
 
   span {
     background-color: #f9f9f9;
@@ -246,14 +250,14 @@ export default {
     align-items: center;
     text-align: center;
     border: 1px solid #5e5e5e;
-    padding: 0 0.4rem;
-    height: 25px;
+    padding: 0.3rem 0.6rem;
+    height: 30px;
   }
   input {
     width: 100%;
     max-width: 120px;
     padding: 0.6rem 0.8rem;
-    height: 25px;
+    height: 30px;
     border: 1px solid #5e5e5e;
     border-left: none;
     outline: 0;
@@ -278,16 +282,19 @@ export default {
   justify-content: center;
   align-items: center;
   text-align: center;
+  cursor: pointer;
   border: 1px solid #5e5e5e;
   padding: 0 0.4rem;
   height: 40px;
 }
+
 button {
   padding: 0;
   border: 0;
   background-color: transparent;
   cursor: pointer;
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -295,12 +302,14 @@ table {
 th {
   background-color: #f8f8f8;
 }
+
 th,
 td {
   border: 1px solid #000;
   padding: 8px;
   text-align: left;
 }
+
 .text-green {
   color: green;
   font-weight: 400;

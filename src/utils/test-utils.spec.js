@@ -1,5 +1,5 @@
 
-import { formatDate } from "./format-date";
+import { formatDateAndTime } from "./format-date";
 import camelize from "./camelize";
 import formatPrice from './format-price'
 
@@ -11,7 +11,6 @@ describe('camelize()', () => {
   })
 })
 
-
 describe('formatPrice()', () => {
   it('should be return a money with symbol', () => {
     let value = '363.60'
@@ -20,12 +19,14 @@ describe('formatPrice()', () => {
   })
 })
 
-describe('formatDate()', () => {
+describe('formatDateAndTime()', () => {
   it('should be return a date format us', () => {
-    const date = formatDate('2021-02-18T11:28:32.115Z')
-    // const date = formatDate(new Date())
-    // const date = formatDate('2021-02-18T06:07:05.088')
-    // lastUpdated: "2021-02-05 08:28:32",
-    expect(date).toStrictEqual("2021-02-18 08:28:32")
+    const date = formatDateAndTime('2021-02-18T11:28:32.115Z')
+    expect(date).toStrictEqual("02/18/2021 03:28:32")
+  })
+
+  it('check if a date string is in ISO and UTC format', () => {
+    const date = formatDateAndTime('05-54-201 date-invalid')
+    expect(date).toStrictEqual("Invalid Date")
   })
 })
