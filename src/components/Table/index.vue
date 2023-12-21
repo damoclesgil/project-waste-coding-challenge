@@ -1,50 +1,79 @@
 <template>
-  <div>
-    <div>
-      <input
-        type="search"
-        class="input-search"
-        v-model="searchQuery"
-        @input="onChange"
-        placeholder="Search by “Item code”, “Product”, or “Category”"
-        aria-label="Recipient's search product"
-      />
+  <div class="wrapper">
+    <div class="content">
+      <div class="bg-white">
+        <h2>Inventory</h2>
+        <div class="wrapper-input">
+          <input
+            type="search"
+            class="input-search"
+            v-model="searchQuery"
+            @input="onChange"
+            placeholder="Search by “Item code”, “Product”, or “Category”"
+            aria-label="Recipient's search product"
+          />
+          <span class="search-icon">
+            <SearchIcon />
+          </span>
+        </div>
+        <div v-if="filteredList.length">
+          <table>
+            <thead>
+              <tr>
+                <th v-for="field in fields" :key="field">
+                  {{ field }}
+                  <button @click="sortValue(field)" v-if="showSortIcon(field)">
+                    <SortIcon :color-asc="colorAsc" :color-desc="colorDesc" />
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, indexItem) in filteredList" :key="indexItem">
+                <td
+                  v-for="(cell, indexCell) in handleCells(fields)"
+                  :key="cell"
+                  :class="`${fields[indexCell] === 'Product' && 'text-green'}`"
+                >
+                  {{ item[cell] }}
+                </td>
+                <td>
+                  <div class="wrapper-input-cell">
+                    <span>Qty</span>
+                    <input
+                      v-model="tableData[indexItem].quantity"
+                      :name="fields[indexCell]"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div v-else>
+          <p>
+            The search with these parameters
+            <strong>{{ searchQuery }}</strong> was not found!
+          </p>
+        </div>
+      </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <!-- loop through each value of the fields to get the table header -->
-          <th v-for="field in fields" :key="field" @click="sortValue(field)">
-            {{ field }}
-            <i class="bi bi-sort-alpha-down" aria-label="Sort Icon"></i>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Loop through the list get the each student data -->
-        <tr v-for="(item, indexItem) in filteredList" :key="indexItem">
-          <!-- <td v-for="field in fields" :key="field">{{ item[field] }}</td> -->
-          <td>{{ item.itemCode }}</td>
-          <td class="text-green">{{ item.product }}</td>
-          <td>{{ item.package }}</td>
-          <td>{{ item.availableUnits }}</td>
-          <td>{{ item.category }}</td>
-          <td>{{ item.lastUpdated }}</td>
-          <td>
-            <input v-model="datax[indexItem].quantity" />
-          </td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </template>
 <script>
 import { ref, computed } from "vue";
 import { camelize } from "../../utils/camelize";
 import { debounce } from "throttle-debounce";
+import SortIcon from "../Icons/SortIcon.vue";
+import SearchIcon from "../Icons/SearchIcon.vue";
 
 export default {
   name: "TableComponent",
+  components: {
+    SortIcon,
+    SearchIcon,
+  },
   props: {
     //
     data: {
@@ -56,7 +85,7 @@ export default {
   },
   setup(props) {
     const searchQuery = ref(null);
-    const datax = ref([...props.data]);
+    const tableData = ref([...props.data]);
     const currentSort = ref(0);
     const sortStatus = ref([null, "asc", "desc"]);
 
@@ -76,7 +105,7 @@ export default {
     const sortValue = (col) => {
       let key = handleHeaders(col);
       currentSort.value = currentSort.value !== 2 ? currentSort.value + 1 : 0;
-      datax.value = sortBy(key, sortStatus.value[currentSort.value]);
+      tableData.value = sortBy(key, sortStatus.value[currentSort.value]);
     };
 
     const handleHeaders = (headers) => {
@@ -86,13 +115,19 @@ export default {
       return camelize(headers);
     };
 
+    const handleCells = (fields) => {
+      return fields
+        .map((field) => handleHeaders(field))
+        .filter((field) => field !== "quantity");
+    };
+
     const handleSearch = debounce(800, (searching) => {
       onSearch(searching.trim());
     });
 
     const onSearch = (searchParam) => {
       // if existis an api request with a interval of 800 milliseconds.
-      console.info(searchParam);
+      return searchParam;
     };
 
     const onChange = () => {
@@ -101,7 +136,7 @@ export default {
 
     const filteredList = computed(() => {
       if (searchQuery.value) {
-        return datax.value.filter((item) => {
+        return tableData.value.filter((item) => {
           return (
             item.product
               .toLowerCase()
@@ -112,32 +147,134 @@ export default {
             item.package
               .toLowerCase()
               .indexOf(searchQuery.value.toLowerCase()) != -1 ||
+            item.quantity
+              .toLowerCase()
+              .indexOf(searchQuery.value.toLowerCase()) != -1 ||
             item.category
               .toLowerCase()
               .indexOf(searchQuery.value.toLowerCase()) != -1
           );
         });
       }
-      return datax.value;
+      return tableData.value;
     });
+
+    const colorAsc = computed(() => {
+      if (currentSort.value === 1 && currentSort.value !== 0) return "#2D3748";
+      if (currentSort.value === 2 && currentSort.value !== 0) return "#E7E8EA";
+      return "#E7E8EA";
+    });
+    const colorDesc = computed(() => {
+      if (currentSort.value === 1 && currentSort.value !== 0) return "#E7E8EA";
+      if (currentSort.value === 2 && currentSort.value !== 0) return "#2D3748";
+      return "#E7E8EA";
+    });
+
+    const showSortIcon = (field) => {
+      if (
+        field === "Product" ||
+        field === "Package" ||
+        field === "Available units" ||
+        field === "Last updated"
+      ) {
+        return true;
+      }
+      return false;
+    };
 
     return {
       searchQuery,
       filteredList,
       onChange,
-      datax,
+      tableData,
       handleSearch,
       sortValue,
+      colorAsc,
+      colorDesc,
+      showSortIcon,
+      handleCells,
     };
   },
 };
 </script>
 <style scoped>
+.wrapper {
+}
+.content {
+  display: flex;
+  align-content: start;
+  flex-direction: column;
+  justify-content: start;
+}
+.bg-white {
+  text-align: left;
+  padding: 1.5rem;
+  background-color: #fff;
+  h2 {
+    margin-bottom: 1rem;
+  }
+}
+
+.wrapper-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+.wrapper-input-cell {
+  display: flex;
+  justify-content: center;
+
+  span {
+    background-color: #f9f9f9;
+    font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border: 1px solid #5e5e5e;
+    padding: 0 0.4rem;
+    height: 25px;
+  }
+  input {
+    width: 100%;
+    max-width: 120px;
+    padding: 0.6rem 0.8rem;
+    height: 25px;
+    border: 1px solid #5e5e5e;
+    border-left: none;
+  }
+}
+.input-search {
+  width: 100%;
+  max-width: 330px;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 1rem;
+  height: 40px;
+  border: 1px solid #5e5e5e;
+  border-right: none;
+}
+.search-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border: 1px solid #5e5e5e;
+  padding: 0 0.4rem;
+  height: 40px;
+}
+button {
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  cursor: pointer;
+}
 table {
   width: 100%;
   border-collapse: collapse;
 }
-
+th {
+  background-color: #f8f8f8;
+}
 th,
 td {
   border: 1px solid #000;
@@ -147,11 +284,5 @@ td {
 .text-green {
   color: green;
   font-weight: 400;
-}
-.input-search {
-  width: 100%;
-  max-width: 330px;
-  padding: 0.6rem 0.8rem;
-  margin-bottom: 1rem;
 }
 </style>

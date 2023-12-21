@@ -1,9 +1,6 @@
 <template>
-  <div class="hello">
+  <div class="wrapper">
     <TableComponent :data="products" :fields="columnsTitle" />
-    <!-- <div v-for="(product, indexProduct) in products" :key="indexProduct">
-      {{ product }}
-    </div> -->
   </div>
 </template>
 
@@ -25,4 +22,9 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.wrapper {
+  background-color: #f8f8f8;
+  padding: 0.5rem 1rem;
+}
+</style>
