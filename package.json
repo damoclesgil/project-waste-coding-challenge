@@ -1,6 +1,7 @@
 {
   "name": "project-waste-coding-challenge",
   "version": "0.1.0",
+  "author": "damoclesgil",
   "private": true,
   "scripts": {
     "dev": "vue-cli-service serve",

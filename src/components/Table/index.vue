@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div>
     <div class="content">
       <div class="bg-white">
         <h2>Inventory</h2>
@@ -35,14 +35,18 @@
                   :key="cell"
                   :class="`${fields[indexCell] === 'Product' && 'text-green'}`"
                 >
-                  {{ item[cell] }}
+                  {{ fields[indexCell] === "Last updated" ? "" : item[cell] }}
+                  <!-- {{ item[cell] }} -->
                 </td>
                 <td>
                   <div class="wrapper-input-cell">
                     <span>Qty</span>
                     <input
-                      v-model="tableData[indexItem].quantity"
-                      :name="fields[indexCell]"
+                      :value="tableData[indexItem].quantity"
+                      @input="onChangeValue($event, indexItem)"
+                      name="quantity"
+                      type="number"
+                      placeholder="quantity"
                     />
                   </div>
                 </td>
@@ -63,7 +67,8 @@
 </template>
 <script>
 import { ref, computed } from "vue";
-import { camelize } from "../../utils/camelize";
+import camelize from "../../utils/camelize";
+import formatPrice from "../../utils/format-price";
 import { debounce } from "throttle-debounce";
 import SortIcon from "../Icons/SortIcon.vue";
 import SearchIcon from "../Icons/SearchIcon.vue";
@@ -182,12 +187,25 @@ export default {
       return false;
     };
 
+    const onChangeValue = (e, index) => {
+      console.log(e.target.value);
+      console.log(index);
+      let formattedValue = formatPrice(e.target.value);
+      tableData.value[index].quantity = e.target.value;
+      tableData.value[index].availableUnits = formattedValue;
+      console.log(formattedValue);
+      // Object.assign(datax[index], {
+      //   valor: '123'
+      // })
+    };
+
     return {
       searchQuery,
       filteredList,
       onChange,
       tableData,
       handleSearch,
+      onChangeValue,
       sortValue,
       colorAsc,
       colorDesc,
@@ -198,13 +216,9 @@ export default {
 };
 </script>
 <style scoped>
-.wrapper {
-}
 .content {
   display: flex;
-  align-content: start;
   flex-direction: column;
-  justify-content: start;
 }
 .bg-white {
   text-align: left;
@@ -242,6 +256,7 @@ export default {
     height: 25px;
     border: 1px solid #5e5e5e;
     border-left: none;
+    outline: 0;
   }
 }
 .input-search {
@@ -252,6 +267,11 @@ export default {
   height: 40px;
   border: 1px solid #5e5e5e;
   border-right: none;
+  outline: 0;
+}
+.input-search:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 0.3rem #eaeaea inset;
+  filter: none;
 }
 .search-icon {
   display: flex;
