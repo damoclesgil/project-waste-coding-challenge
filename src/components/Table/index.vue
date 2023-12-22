@@ -119,18 +119,8 @@ export default {
         return 0;
       }
 
-      function orderByNumber(a, b) {
-        return a[currentSortKey].localeCompare(b[currentSortKey], "en", {
-          numeric: true,
-          sensitivity: "base",
-        });
-      }
       return currentSortType !== null
-        ? [...tableData.value].sort(
-            currentSortKey === "package" || currentSortKey === "availableUnits"
-              ? orderByNumber
-              : compare
-          )
+        ? [...tableData.value].sort(compare)
         : [...tableData.value];
     };
 
